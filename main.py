@@ -47,6 +47,8 @@ class ImageCanvas(tk.Canvas):
         self.dragging = False
         self.box_count = 0
         self.dragged_label = None
+        self.temp_label = None
+
 
         self.addtag_all("all")
         self.update()
@@ -207,10 +209,10 @@ class ImageCanvas(tk.Canvas):
                 if x >= bb[0] and x <= bb[2] and y >= bb[1] and y <= bb[3]:
                     print("inside the box")
                     self.dragged_label = label
+                    self.temp_label = label
+                    #print("dragged label: ", self.dragged_label)
+
                     
-            print ("boxes: ", self.box_count)
-            print("dragged label: ", self.dragged_label)
-            self.box_count = 0
             
 
         print("clicked at", self.new_label_clicked_xy)
@@ -240,7 +242,36 @@ class ImageCanvas(tk.Canvas):
             self.new_label_temporary_text = None
             print("released at", event.x, event.y)
         elif self.dragging:
+            self.new_label_released_xy = (event.x, event.y)
+
+            self.drop()
+
+
+
+    def drop(self):
+        if self.dragging == True:
+            x,y = self.new_label_released_xy
+            x =  min(max(x, 0), self.winfo_width()) #Don't go out of bounds
+            y =  min(max(y, 0), self.winfo_width())
+            x1 = self.dragged_label[0][0]
+            x2 = self.dragged_label[0][2]
+            y1 = self.dragged_label[0][1]
+            y2 = self.dragged_label[0][3]
+            #print( self.labels.index(self.dragged_label))
+            index = self.labels.index(self.dragged_label)
+            self.new_label_box = self.create_rectangle(x1+x,y1+y,x2+x,y2+y, fill="", outline=COLORS[SELECTED_CLASS])
+            self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
+            bounding_box = (min(x1+x,x2+x)/ self.winfo_width(), min(y1+y,y2+y)/self.winfo_height(), max(x1+x,x2+x)/self.winfo_width(), max(y1+y,y2+y)/self.winfo_height())
+            new_label = (bounding_box,CLASSES[SELECTED_CLASS],self.new_label_box,self.new_label_text)
+            print("added", bounding_box, CLASSES[SELECTED_CLASS])
+
+            self.labels.remove(self.dragged_label)
+            self.labels.append(new_label)
+            self.save_labels(self.image_filename,self.labels)
+            self.load_labels(self.image_filename)
+            self.new_label_released_xy = None
             
+
     def on_enter(self, event):
         self.update_crosshair(event)
     def on_leave(self, event):
@@ -328,6 +359,10 @@ class App(tk.Tk):
         self.bind_all('<Control-q>', self.quit_app)
         self.bind_all('<Escape>', lambda event: self.frame_canvas.cancel())
         self.bind_all("<Key>", self.hotkey)
+       #self.frame_canvas.labels[].bind("<Button-1>", self.frame_canvas.on_drag_start)
+       #self.frame_canvas.dragged_label.bind("<B1-Motion>", self.frame_canvas.on_drag_motion)
+        #self.bind_all("<B1-Motion>", self.frame_canvas.drag)
+
 
         #figure out how to
     def hotkey(self, event):
@@ -339,11 +374,13 @@ class App(tk.Tk):
             if len(self.frames) > 0:
                 self.current_frame_index = (self.current_frame_index + 1)  % len(self.frames)
                 self.frame_canvas.load_image(self.frames[self.current_frame_index])
+                self.frame_canvas.image_filename = self.frames[self.current_frame_index]
                 self.filename_label.config(text= "Current File: " +  self.frames[self.current_frame_index])
         elif event.char == "a":
             if len(self.frames) > 0:
                 self.current_frame_index = (self.current_frame_index - 1) % len(self.frames)
                 self.frame_canvas.load_image(self.frames[self.current_frame_index])
+                self.frame_canvas.image_filename = self.frames[self.current_frame_index]
                 self.filename_label.config(text="Current File: " + self.frames[self.current_frame_index])
         elif event.char == "c":
             self.frame_canvas.clear_labels()
