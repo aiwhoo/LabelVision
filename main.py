@@ -108,8 +108,8 @@ class ImageCanvas(tk.Canvas):
         else:
             if os.path.exists(label_filename):
                     print("Loading existing labels for", image_filename)
-                        #MOVE HERE self.clear_labels() if you want to keep the previous frames labels
-                        #draw labels from file onto canvas
+                    #MOVE HERE self.clear_labels() if you want to keep the previous frames labels
+                    #draw labels from file onto canvas
                     with open(label_filename, "r") as yolo_label_file:
                         yolo_labels = yolo_label_file.read().splitlines()
                         for yolo_label in yolo_labels:
@@ -121,7 +121,7 @@ class ImageCanvas(tk.Canvas):
                             bb_id = self.create_rectangle(bb[0] * self.winfo_width(),bb[1] * self.winfo_height() ,bb[2] * self.winfo_width(),bb[3] * self.winfo_height(), fill="", outline=COLORS[class_index])
                             new_label_text_id = self.create_text(x * self.winfo_width(), (y * self.winfo_height()) - 5, fill=COLORS[class_index], text=class_name)
                             self.labels.append([bb,class_name,bb_id, new_label_text_id])
-                            print("labels:")
+        print("labels:")
         for label in self.labels:
             print(label)
 
@@ -234,6 +234,7 @@ class App(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         self.filename_label = None
+        self.mode_label = None
         self.create_widget_frame()
 
         self.create_menu()
@@ -265,6 +266,7 @@ class App(tk.Tk):
         current_row = 0
 
         tk.Label(widget_frame, text='Current File: ').grid(label_config, row=current_row)
+
         self.filename_label = tk.Label(widget_frame, text='')
         self.filename_label.grid(label_config, row=current_row)
         current_row += 1
@@ -276,6 +278,13 @@ class App(tk.Tk):
         self.selected_optionmenu.trace("w", self.updated_class_combobox)
         self.class_optionmenu.grid(widget_config, row=current_row)
         current_row += 1
+
+
+        tk.Label(widget_frame, text='Mode: ').grid(label_config, row=current_row)
+        self.mode_label = tk.Label(widget_frame, text='')
+        self.mode_label.grid(label_config, row=current_row)
+        self.mode_label.config(text="Mode: " + "editing")
+
 
         widget_frame.pack(fill=tk.X, expand=tk.NO)
 
@@ -320,6 +329,7 @@ class App(tk.Tk):
             self.frame_canvas.clear_last_label()
         elif event.char == "r":
             self.frame_canvas.rollingover_label = not self.frame_canvas.rollingover_label
+            self.mode_label.config(text="Mode: " + "rollover") if self.frame_canvas.rollingover_label == True else self.mode_label.config(text="Mode: " + "editing")
             print("r pressed rollover is now", self.frame_canvas.rollingover_label)
 
 
