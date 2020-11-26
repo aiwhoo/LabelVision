@@ -44,6 +44,9 @@ class ImageCanvas(tk.Canvas):
         self.image_on_canvas = self.create_image(0,0, anchor=tk.NW, image=self.resized_photoimage, tag="all")
         self.config(cursor = 'none')
         self.rollingover_label = False
+        self.dragging = False
+        self.box_count = 0
+        self.dragged_label = None
 
         self.addtag_all("all")
         self.update()
@@ -172,7 +175,7 @@ class ImageCanvas(tk.Canvas):
             self.new_label_temporary_box  = self.create_rectangle(x1,y1, x2,y2, fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
             self.new_label_temporary_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
     def clicked(self, event):
-        if self.editing:
+        if self.editing and not self.dragging:
             x,y = (event.x/self.winfo_width(), event.y/self.winfo_height())
             candidate_click = None
             min_candidate_click_distance = 9999999999
@@ -192,34 +195,52 @@ class ImageCanvas(tk.Canvas):
                 self.delete(bb_id)
                 self.delete(text_id)
                 del self.labels[candidate_click]
-        else:
+        elif not self.dragging:
             self.new_label_released_xy = None
             self.new_label_clicked_xy = (event.x, event.y)
+        elif self.dragging:
+
+            x,y = (event.x/self.winfo_width(), event.y/self.winfo_height())
+            for i in range(len(self.labels)):
+                label = self.labels[i]
+                bb, class_name, bb_id, new_label_text_id = label
+                if x >= bb[0] and x <= bb[2] and y >= bb[1] and y <= bb[3]:
+                    print("inside the box")
+                    self.dragged_label = label
+                    
+            print ("boxes: ", self.box_count)
+            print("dragged label: ", self.dragged_label)
+            self.box_count = 0
+            
+
         print("clicked at", self.new_label_clicked_xy)
     def click_release(self, event):
         if self.editing:
             return
-        self.new_label_released_xy = (event.x, event.y)
-        if self.new_label_clicked_xy != None and self.image_filename != DEFAULT_IMAGE_FILENAME: #Create Box
-            x1,y1 = self.new_label_clicked_xy
-            x2,y2 = self.new_label_released_xy
-            x2 =  min(max(x2, 0), self.winfo_width()) #Don't go out of bounds
-            y2 =  min(max(y2, 0), self.winfo_width())
-            #Note: top left is (0,0), bottom right is (1,1)
-            self.new_label_box = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS])
-            self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
-            bounding_box = (min(x1,x2)/ self.winfo_width(), min(y1,y2)/self.winfo_height(), max(x1,x2)/self.winfo_width(), max(y1,y2)/self.winfo_height())
-            new_label = (bounding_box,CLASSES[SELECTED_CLASS],self.new_label_box,self.new_label_text)
-            print("added", bounding_box, CLASSES[SELECTED_CLASS])
-            self.labels.append(new_label)
-            self.delete(self.new_label_temporary_box)
-            self.delete(self.new_label_temporary_text)
-            self.addtag_all("all")
-        self.new_label_released_xy = None
-        self.new_label_clicked_xy = None
-        self.new_label_temporary_box = None
-        self.new_label_temporary_text = None
-        print("released at", event.x, event.y)
+        elif not self.dragging:
+            self.new_label_released_xy = (event.x, event.y)
+            if self.new_label_clicked_xy != None and self.image_filename != DEFAULT_IMAGE_FILENAME: #Create Box
+                x1,y1 = self.new_label_clicked_xy
+                x2,y2 = self.new_label_released_xy
+                x2 =  min(max(x2, 0), self.winfo_width()) #Don't go out of bounds
+                y2 =  min(max(y2, 0), self.winfo_width())
+                #Note: top left is (0,0), bottom right is (1,1)
+                self.new_label_box = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS])
+                self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
+                bounding_box = (min(x1,x2)/ self.winfo_width(), min(y1,y2)/self.winfo_height(), max(x1,x2)/self.winfo_width(), max(y1,y2)/self.winfo_height())
+                new_label = (bounding_box,CLASSES[SELECTED_CLASS],self.new_label_box,self.new_label_text)
+                print("added", bounding_box, CLASSES[SELECTED_CLASS])
+                self.labels.append(new_label)
+                self.delete(self.new_label_temporary_box)
+                self.delete(self.new_label_temporary_text)
+                self.addtag_all("all")
+            self.new_label_released_xy = None
+            self.new_label_clicked_xy = None
+            self.new_label_temporary_box = None
+            self.new_label_temporary_text = None
+            print("released at", event.x, event.y)
+        elif self.dragging:
+            
     def on_enter(self, event):
         self.update_crosshair(event)
     def on_leave(self, event):
@@ -327,12 +348,13 @@ class App(tk.Tk):
         elif event.char == "c":
             self.frame_canvas.clear_labels()
         elif event.char == "w":
-            global SELECTED_CROSS_HAIR_COLOR_INDEX
-            self.frame_canvas.editing = not self.frame_canvas.editing
-            cross_hair_color = "red" if self.frame_canvas.editing else CROSS_HAIR_COLORS[SELECTED_CROSS_HAIR_COLOR_INDEX]
-            self.frame_canvas.itemconfig(self.frame_canvas.horizontal_dash_line, fill=cross_hair_color)
-            self.frame_canvas.itemconfig(self.frame_canvas.vertical_dash_line, fill=cross_hair_color)
-            self.adding_box_label.config(text="Adding boxes: " + str(not self.frame_canvas.editing))
+            if self.frame_canvas.dragging == False:
+                global SELECTED_CROSS_HAIR_COLOR_INDEX
+                self.frame_canvas.editing = not self.frame_canvas.editing
+                cross_hair_color = "red" if self.frame_canvas.editing else CROSS_HAIR_COLORS[SELECTED_CROSS_HAIR_COLOR_INDEX]
+                self.frame_canvas.itemconfig(self.frame_canvas.horizontal_dash_line, fill=cross_hair_color)
+                self.frame_canvas.itemconfig(self.frame_canvas.vertical_dash_line, fill=cross_hair_color)
+                self.adding_box_label.config(text="Adding boxes: " + str(not self.frame_canvas.editing))
         elif event.char == "z":
             print("Deleting last box...");
             self.frame_canvas.clear_last_label()
@@ -340,6 +362,12 @@ class App(tk.Tk):
             self.frame_canvas.rollingover_label = not self.frame_canvas.rollingover_label
             self.mode_label.config(text="Rolling Labels: " + str(self.frame_canvas.rollingover_label))
             print("r pressed rollover is now", self.frame_canvas.rollingover_label)
+        elif event.char == "q":
+            self.frame_canvas.dragging = not self.frame_canvas.dragging
+            cross_hair_color = "blue" if self.frame_canvas.dragging else CROSS_HAIR_COLORS[SELECTED_CROSS_HAIR_COLOR_INDEX]
+            self.frame_canvas.itemconfig(self.frame_canvas.horizontal_dash_line, fill=cross_hair_color)
+            self.frame_canvas.itemconfig(self.frame_canvas.vertical_dash_line, fill=cross_hair_color)
+            print("dragging: ", self.frame_canvas.dragging)
 
 
         elif event.char == "f":
