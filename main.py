@@ -104,41 +104,27 @@ class ImageCanvas(tk.Canvas):
             self.clear_labels()
 
         if os.path.exists(label_filename) and self.rollingover_label == True:
-            print ("labels exist, no need to overwrite")
+            print("labels exist, don't overwrite")
             self.clear_labels()
-            if os.path.exists(label_filename):
-                print("Loading existing labels for", image_filename)
-                #MOVE HERE self.clear_labels() if you want to keep the previous frames labels
-                #draw labels from file onto canvas
-                with open(label_filename, "r") as yolo_label_file:
-                    yolo_labels = yolo_label_file.read().splitlines()
-                    for yolo_label in yolo_labels:
-                        class_index, x, y, width, height = yolo_label.split(" ")
-                        class_index = int(class_index)
-                        x, y, width, height = float(x), float(y), float(width), float(height)
-                        class_name = CLASSES[class_index]
-                        bb = [x,y, x+width, y+height]
-                        bb_id = self.create_rectangle(bb[0] * self.winfo_width(),bb[1] * self.winfo_height() ,bb[2] * self.winfo_width(),bb[3] * self.winfo_height(), fill="", outline=COLORS[class_index])
-                        new_label_text_id = self.create_text(x * self.winfo_width(), (y * self.winfo_height()) - 5, fill=COLORS[class_index], text=class_name)
-                        self.labels.append([bb,class_name,bb_id, new_label_text_id])
+
+        if len(self.labels) > 0:
+            print ("labels exist, no need to overwrite")
         else:
             if os.path.exists(label_filename):
-                print("loading existing labels for", image_filename)
-                #MOVE HERE self.clear_labels() if you want to keep the previous frames labels
-                #draw labels from file onto canvas
-                with open(label_filename, "r") as yolo_label_file:
-                    yolo_labels = yolo_label_file.read().splitlines()
-                    for yolo_label in yolo_labels:
-                        class_index, x, y, width, height = yolo_label.split(" ")
-                        class_index = int(class_index)
-                        x, y, width, height = float(x), float(y), float(width), float(height)
-                        class_name = CLASSES[class_index]
-                        bb = [x,y, x+width, y+height]
-                        bb_id = self.create_rectangle(bb[0] * self.winfo_width(),bb[1] * self.winfo_height() ,bb[2] * self.winfo_width(),bb[3] * self.winfo_height(), fill="", outline=COLORS[class_index])
-                        new_label_text_id = self.create_text(x * self.winfo_width(), (y * self.winfo_height()) - 5, fill=COLORS[class_index], text=class_name)
-                        self.labels.append([bb,class_name,bb_id, new_label_text_id])
-       
-
+                    print("Loading existing labels for", image_filename)
+                    #MOVE HERE self.clear_labels() if you want to keep the previous frames labels
+                    #draw labels from file onto canvas
+                    with open(label_filename, "r") as yolo_label_file:
+                        yolo_labels = yolo_label_file.read().splitlines()
+                        for yolo_label in yolo_labels:
+                            class_index, x, y, width, height = yolo_label.split(" ")
+                            class_index = int(class_index)
+                            x, y, width, height = float(x), float(y), float(width), float(height)
+                            class_name = CLASSES[class_index]
+                            bb = [x,y, x+width, y+height]
+                            bb_id = self.create_rectangle(bb[0] * self.winfo_width(),bb[1] * self.winfo_height() ,bb[2] * self.winfo_width(),bb[3] * self.winfo_height(), fill="", outline=COLORS[class_index])
+                            new_label_text_id = self.create_text(x * self.winfo_width(), (y * self.winfo_height()) - 5, fill=COLORS[class_index], text=class_name)
+                            self.labels.append([bb,class_name,bb_id, new_label_text_id])
         print("labels:")
         for label in self.labels:
             print(label)
