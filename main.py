@@ -112,8 +112,6 @@ class ImageCanvas(tk.Canvas):
         else:
             if os.path.exists(label_filename):
                     print("Loading existing labels for", image_filename)
-                    #MOVE HERE self.clear_labels() if you want to keep the previous frames labels
-                    #draw labels from file onto canvas
                     with open(label_filename, "r") as yolo_label_file:
                         yolo_labels = yolo_label_file.read().splitlines()
                         for yolo_label in yolo_labels:
@@ -238,7 +236,8 @@ class App(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         self.filename_label = None
-        self.mode_label = None
+        self.mode_label = None              # refers to rollover/edit mode
+        self.adding_box_label = None      # refers to add/delete box
         self.create_widget_frame()
 
         self.create_menu()
@@ -283,12 +282,17 @@ class App(tk.Tk):
         self.class_optionmenu.grid(widget_config, row=current_row)
         current_row += 1
 
-
-        tk.Label(widget_frame, text='Mode: ').grid(label_config, row=current_row)
+        tk.Label(widget_frame, text='Rolling labels: ').grid(label_config, row=current_row)
         self.mode_label = tk.Label(widget_frame, text='')
         self.mode_label.grid(label_config, row=current_row)
-        self.mode_label.config(text="Mode: " + "editing")
+        self.mode_label.config(text="Rolling labels: " + "False")
+        current_row += 1
 
+        tk.Label(widget_frame, text='Adding boxes: ').grid(label_config, row=current_row)
+        self.adding_box_label = tk.Label(widget_frame, text='')
+        self.adding_box_label.grid(label_config, row=current_row)
+        self.adding_box_label.config(text="Adding boxes: " + "True")
+        current_row += 1
 
         widget_frame.pack(fill=tk.X, expand=tk.NO)
 
@@ -328,12 +332,13 @@ class App(tk.Tk):
             cross_hair_color = "red" if self.frame_canvas.editing else CROSS_HAIR_COLORS[SELECTED_CROSS_HAIR_COLOR_INDEX]
             self.frame_canvas.itemconfig(self.frame_canvas.horizontal_dash_line, fill=cross_hair_color)
             self.frame_canvas.itemconfig(self.frame_canvas.vertical_dash_line, fill=cross_hair_color)
+            self.adding_box_label.config(text="Adding boxes: " + str(not self.frame_canvas.editing))
         elif event.char == "z":
             print("Deleting last box...");
             self.frame_canvas.clear_last_label()
         elif event.char == "r":
             self.frame_canvas.rollingover_label = not self.frame_canvas.rollingover_label
-            self.mode_label.config(text="Mode: " + "rollover") if self.frame_canvas.rollingover_label == True else self.mode_label.config(text="Mode: " + "editing")
+            self.mode_label.config(text="Rolling Labels: " + str(self.frame_canvas.rollingover_label))
             print("r pressed rollover is now", self.frame_canvas.rollingover_label)
 
 
