@@ -209,7 +209,6 @@ class ImageCanvas(tk.Canvas):
                 if x >= bb[0] and x <= bb[2] and y >= bb[1] and y <= bb[3]:
                     print("inside the box")
                     self.dragged_label = label
-                    self.temp_label = label
                     #print("dragged label: ", self.dragged_label)
 
                     
@@ -243,9 +242,17 @@ class ImageCanvas(tk.Canvas):
             print("released at", event.x, event.y)
         elif self.dragging:
             self.new_label_released_xy = (event.x, event.y)
-
             self.drop()
-
+            index = self.labels.index(self.dragged_label)
+            label = self.labels[index]
+            bb, class_name, bb_id, text_id = label
+            self.delete(bb_id)
+            self.delete(text_id)
+            del self.labels[index]
+            self.labels.append(self.temp_label)
+            self.save_labels(self.image_filename,self.labels)
+            self.load_labels(self.image_filename)
+            self.new_label_released_xy = None
 
 
     def drop(self):
@@ -258,18 +265,13 @@ class ImageCanvas(tk.Canvas):
             y1 = self.dragged_label[0][1]
             y2 = self.dragged_label[0][3]
             #print( self.labels.index(self.dragged_label))
-            index = self.labels.index(self.dragged_label)
             self.new_label_box = self.create_rectangle(x1+x,y1+y,x2+x,y2+y, fill="", outline=COLORS[SELECTED_CLASS])
             self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
             bounding_box = (min(x1+x,x2+x)/ self.winfo_width(), min(y1+y,y2+y)/self.winfo_height(), max(x1+x,x2+x)/self.winfo_width(), max(y1+y,y2+y)/self.winfo_height())
-            new_label = (bounding_box,CLASSES[SELECTED_CLASS],self.new_label_box,self.new_label_text)
+            self.temp_label = (bounding_box,CLASSES[SELECTED_CLASS],self.new_label_box,self.new_label_text)
             print("added", bounding_box, CLASSES[SELECTED_CLASS])
 
-            self.labels.remove(self.dragged_label)
-            self.labels.append(new_label)
-            self.save_labels(self.image_filename,self.labels)
-            self.load_labels(self.image_filename)
-            self.new_label_released_xy = None
+            
             
 
     def on_enter(self, event):
