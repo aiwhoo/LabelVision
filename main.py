@@ -260,14 +260,14 @@ class ImageCanvas(tk.Canvas):
             x,y = self.new_label_released_xy
             x =  min(max(x, 0), self.winfo_width()) #Don't go out of bounds
             y =  min(max(y, 0), self.winfo_width())
-            x1 = self.dragged_label[0][0]
-            x2 = self.dragged_label[0][2]
-            y1 = self.dragged_label[0][1]
-            y2 = self.dragged_label[0][3]
+            x1 = self.dragged_label[0][0] + x
+            x2 = self.dragged_label[0][2] + x
+            y1 = self.dragged_label[0][1] + y
+            y2 = self.dragged_label[0][3] + y
             #print( self.labels.index(self.dragged_label))
-            self.new_label_box = self.create_rectangle(x1+x,y1+y,x2+x,y2+y, fill="", outline=COLORS[SELECTED_CLASS])
+            self.new_label_box = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS])
             self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
-            bounding_box = (min(x1+x,x2+x)/ self.winfo_width(), min(y1+y,y2+y)/self.winfo_height(), max(x1+x,x2+x)/self.winfo_width(), max(y1+y,y2+y)/self.winfo_height())
+            bounding_box = (min(x1,x2)/ self.winfo_width(), min(y1,y2)/self.winfo_height(), max(x1,x2)/self.winfo_width(), max(y1,y2)/self.winfo_height())
             self.temp_label = (bounding_box,CLASSES[SELECTED_CLASS],self.new_label_box,self.new_label_text)
             print("added", bounding_box, CLASSES[SELECTED_CLASS])
 
