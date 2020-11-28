@@ -280,10 +280,18 @@ class ImageCanvas(tk.Canvas):
             label = self.dragged_label
             #print( self.labels.index(self.dragged_label))
             if (x > x1 and x < x2 and  y > y1 and y < y2):
+                self.new_label_temporary_box  = self.create_rectangle(x1+dx1,y1+dy1, x2+dx2,y2+dy2, fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
+                temp_bounding_box = (min(x1+dx1,x2+dx2), min(y1+dy1,y2+dy2), max(x1+dx1,x2+dx2), max(y1+dy1,y2+dy2))
+                self.new_label_text = self.create_text(label[0][0], label[0][1] - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
+                self.temp_label = (temp_bounding_box,CLASSES[SELECTED_CLASS],self.new_label_temporary_box,self.new_label_text)
+            
+            '''
+            if (x > x1 and x < x2 and  y > y1 and y < y2):
                 self.new_label_temporary_box  = self.create_rectangle(x1+dx1,y1+dy1,x2+dx2,y2+dy2, fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
                 temp_bounding_box = (min(x1+dx1,x2+dx2), min(y1+dy1,y2+dy2), max(x1+dx1,x2+dx2), max(y1+dy1,y2+dy2))
                 self.new_label_text = self.create_text(label[0][0], label[0][1] - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
                 self.temp_label = (temp_bounding_box,CLASSES[SELECTED_CLASS],self.new_label_temporary_box,self.new_label_text)
+            '''
             '''
             self.new_label_box = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS])
             self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
