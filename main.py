@@ -256,8 +256,8 @@ class ImageCanvas(tk.Canvas):
 
     def drop(self, event):
         if self.dragging == True:
-            x = event.x
-            y = event.y
+            x = event.x/self.winfo_width()
+            y = event.y/self.winfo_height()
             x =  min(max(x, 0), self.winfo_width()) #Don't go out of bounds
             y =  min(max(y, 0), self.winfo_width())
             
@@ -266,21 +266,31 @@ class ImageCanvas(tk.Canvas):
             y1 = self.dragged_label[0][1] 
             y2 = self.dragged_label[0][3]
             
-            new_x1y1 = abs(x1-x), abs(y1-y)
-            new_x2y2 = abs(x2-x), abs(y2-y)
-            dx1, dy1 = new_x1y1
-            dx2, dy2 = new_x2y2
-            x1 += dx1
-            x2 += dx2
-            y1 += dy1
-            y2 += dy2
+            dx1 = abs(x1-x)
+            dy1 = abs(y1-y)
+            dx2 = abs(x2-x)
+            dy2 = abs(y2-y)
+            
+            '''
+            nx1 = (x1+dx1)
+            ny1 = (y1+dy1)
+            nx2 = (x2+dx2)
+            ny2 = (y2+dy2)
+            '''
+            label = self.dragged_label
             #print( self.labels.index(self.dragged_label))
+            if (x > x1 and x < x2 and  y > y1 and y < y2):
+                self.new_label_temporary_box  = self.create_rectangle(x1+dx1,y1+dy1,x2+dx2,y2+dy2, fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
+                temp_bounding_box = (min(x1+dx1,x2+dx2), min(y1+dy1,y2+dy2), max(x1+dx1,x2+dx2), max(y1+dy1,y2+dy2))
+                self.new_label_text = self.create_text(label[0][0], label[0][1] - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
+                self.temp_label = (temp_bounding_box,CLASSES[SELECTED_CLASS],self.new_label_temporary_box,self.new_label_text)
+            '''
             self.new_label_box = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS])
             self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
             bounding_box = (min(x1,x2)/ self.winfo_width(), min(y1,y2)/self.winfo_height(), max(x1,x2)/self.winfo_width(), max(y1,y2)/self.winfo_height())
             self.temp_label = (bounding_box,CLASSES[SELECTED_CLASS],self.new_label_box,self.new_label_text)
             print("added", bounding_box, CLASSES[SELECTED_CLASS])
-
+            '''
             
             
 
