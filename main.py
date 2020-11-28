@@ -242,7 +242,6 @@ class ImageCanvas(tk.Canvas):
             print("released at", event.x, event.y)
         elif self.dragging:
             self.new_label_released_xy = (event.x, event.y)
-            self.drop()
             index = self.labels.index(self.dragged_label)
             label = self.labels[index]
             bb, class_name, bb_id, text_id = label
@@ -255,9 +254,10 @@ class ImageCanvas(tk.Canvas):
             self.new_label_released_xy = None
 
 
-    def drop(self):
+    def drop(self, event):
         if self.dragging == True:
-            x,y = self.new_label_released_xy
+            x = event.x
+            y = event.y
             x =  min(max(x, 0), self.winfo_width()) #Don't go out of bounds
             y =  min(max(y, 0), self.winfo_width())
             
@@ -268,8 +268,12 @@ class ImageCanvas(tk.Canvas):
             
             new_x1y1 = abs(x1-x), abs(y1-y)
             new_x2y2 = abs(x2-x), abs(y2-y)
-            x1, y1 = new_x1y1
-            x2, y2 = new_x2y2
+            dx1, dy1 = new_x1y1
+            dx2, dy2 = new_x2y2
+            x1 += dx1
+            x2 += dx2
+            y1 += dy1
+            y2 += dy2
             #print( self.labels.index(self.dragged_label))
             self.new_label_box = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS])
             self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
@@ -367,9 +371,10 @@ class App(tk.Tk):
         self.bind_all('<Control-q>', self.quit_app)
         self.bind_all('<Escape>', lambda event: self.frame_canvas.cancel())
         self.bind_all("<Key>", self.hotkey)
+
        #self.frame_canvas.labels[].bind("<Button-1>", self.frame_canvas.on_drag_start)
        #self.frame_canvas.dragged_label.bind("<B1-Motion>", self.frame_canvas.on_drag_motion)
-        #self.bind_all("<B1-Motion>", self.frame_canvas.drag)
+        self.bind_all("<B1-Motion>", self.frame_canvas.drop)
 
 
         #figure out how to
