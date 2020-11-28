@@ -260,10 +260,16 @@ class ImageCanvas(tk.Canvas):
             x,y = self.new_label_released_xy
             x =  min(max(x, 0), self.winfo_width()) #Don't go out of bounds
             y =  min(max(y, 0), self.winfo_width())
-            x1 = self.dragged_label[0][0] + x
-            x2 = self.dragged_label[0][2] + x
-            y1 = self.dragged_label[0][1] + y
-            y2 = self.dragged_label[0][3] + y
+            
+            x1 = self.dragged_label[0][0] 
+            x2 = self.dragged_label[0][2] 
+            y1 = self.dragged_label[0][1] 
+            y2 = self.dragged_label[0][3]
+            
+            new_x1y1 = abs(x1-x), abs(y1-y)
+            new_x2y2 = abs(x2-x), abs(y2-y)
+            x1, y1 = new_x1y1
+            x2, y2 = new_x2y2
             #print( self.labels.index(self.dragged_label))
             self.new_label_box = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS])
             self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
