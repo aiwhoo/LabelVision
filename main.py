@@ -48,6 +48,7 @@ class ImageCanvas(tk.Canvas):
         self.box_count = 0
         self.dragged_label = None
         self.temp_label = None
+        
 
 
         self.addtag_all("all")
@@ -256,6 +257,7 @@ class ImageCanvas(tk.Canvas):
 
     def drop(self, event):
         if self.dragging == True:
+            #x,y = self.new_label_released_xy
             x = event.x/self.winfo_width()
             y = event.y/self.winfo_height()
             x =  min(max(x, 0), self.winfo_width()) #Don't go out of bounds
@@ -266,24 +268,54 @@ class ImageCanvas(tk.Canvas):
             y1 = self.dragged_label[0][1] 
             y2 = self.dragged_label[0][3]
             
-            dx1 = abs(x1-x)
-            dy1 = abs(y1-y)
-            dx2 = abs(x2-x)
-            dy2 = abs(y2-y)
+            dx = 0
+            dy = 0
+            nx1 = nx2 = ny1 = ny2 = 0
+            if x < x1:
+                dx = x1 - x
+                x2 = x2 - dx
+                nx1 = (x1 - dx)
+                nx2 = (x2 - dx)
+                x1 = x
+            '''
+            elif x > x1:
+                dx = x1 - x
+                x2 = x2 + dx
+                nx1 = (x1 + dx)
+                nx2 = (x2 + dx)
+                x1 = x
+            '''
+
+            if y < y1:
+                dy = y1 - y
+                y2 = y2 - dy  
+                ny1 = (y1 - dy)
+                ny2 = (y2 - dy)
+                y1 = y
             
+
             '''
-            nx1 = (x1+dx1)
-            ny1 = (y1+dy1)
-            nx2 = (x2+dx2)
-            ny2 = (y2+dy2)
+            if y > y1:
+                dy = y1 - y
+                y2 = y2 + dy  
+                ny1 = (y1 + dy)
+                ny2 = (y2 + dy)
+                y1 = y
+
+
             '''
+         
+            
+       
+            
             label = self.dragged_label
             #print( self.labels.index(self.dragged_label))
-            if (x > x1 and x < x2 and  y > y1 and y < y2):
-                self.new_label_temporary_box  = self.create_rectangle(x1+dx1,y1+dy1, x2+dx2,y2+dy2, fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
-                temp_bounding_box = (min(x1+dx1,x2+dx2), min(y1+dy1,y2+dy2), max(x1+dx1,x2+dx2), max(y1+dy1,y2+dy2))
-                self.new_label_text = self.create_text(label[0][0], label[0][1] - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
-                self.temp_label = (temp_bounding_box,CLASSES[SELECTED_CLASS],self.new_label_temporary_box,self.new_label_text)
+            #if (x > x1 and x < x2 and  y > y1 and y < y2):
+            self.new_label_temporary_box  = self.create_rectangle(nx1*self.winfo_width(),ny1*self.winfo_height(), nx2*self.winfo_width(),ny2*self.winfo_height(), fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
+            temp_bounding_box = (min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2))
+            self.new_label_text = self.create_text(label[0][0], label[0][1] - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
+            self.temp_label = (temp_bounding_box,CLASSES[SELECTED_CLASS],self.new_label_temporary_box,self.new_label_text)
+            self.delete(self.new_label_temporary_box)
             
             '''
             if (x > x1 and x < x2 and  y > y1 and y < y2):
