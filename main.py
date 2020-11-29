@@ -161,6 +161,7 @@ class ImageCanvas(tk.Canvas):
         if self.vertical_dash_line:
             self.delete(self.vertical_dash_line)
         cross_hair_color = "red" if self.editing else CROSS_HAIR_COLORS[SELECTED_CROSS_HAIR_COLOR_INDEX]
+        cross_hair_color = "blue" if self.dragging else CROSS_HAIR_COLORS[SELECTED_CROSS_HAIR_COLOR_INDEX]
 
         self.horizontal_dash_line = self.create_line(0, event.y, self.winfo_width(), event.y, fill=cross_hair_color, dash=(5, 2))
         self.vertical_dash_line = self.create_line(event.x, 0, event.x, self.winfo_height(), fill=cross_hair_color, dash=(5, 2))
@@ -256,8 +257,8 @@ class ImageCanvas(tk.Canvas):
 
 
     def drop(self, event):
-        if self.dragging == True:
-            #x,y = self.new_label_released_xy
+        if self.dragging == True and self.dragged_label != None:
+            self.update_crosshair(event)
             x = event.x/self.winfo_width()
             y = event.y/self.winfo_height()
             x =  min(max(x, 0), self.winfo_width()) #Don't go out of bounds
@@ -279,14 +280,12 @@ class ImageCanvas(tk.Canvas):
                 x1 = x
             
             elif x > x1:
-                
                 dx = x - x1
                 x2 = x2 + dx
                 nx1 = (x1 - dx)
                 nx2 = (x2 - dx)
                 x1 = x
             
-
             if y < y1:
                 dy = y1 - y
                 y2 = y2 - dy  
@@ -295,43 +294,20 @@ class ImageCanvas(tk.Canvas):
                 y1 = y
             
             elif y > y1:
-                
                 dy = y - y1
                 y2 = y2 + dy  
                 ny1 = (y1 - dy)
                 ny2 = (y2 - dy)
-                
                 y1 = y
 
 
-            
-         
-            
-       
-            
             label = self.dragged_label
-            #print( self.labels.index(self.dragged_label))
-            #if (x > x1 and x < x2 and  y > y1 and y < y2):
             self.new_label_temporary_box  = self.create_rectangle(nx1*self.winfo_width(),ny1*self.winfo_height(), nx2*self.winfo_width(),ny2*self.winfo_height(), fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
             temp_bounding_box = (min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2))
             self.new_label_text = self.create_text(label[0][0], label[0][1] - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
             self.temp_label = (temp_bounding_box,CLASSES[SELECTED_CLASS],self.new_label_temporary_box,self.new_label_text)
             self.delete(self.new_label_temporary_box)
-            
-            '''
-            if (x > x1 and x < x2 and  y > y1 and y < y2):
-                self.new_label_temporary_box  = self.create_rectangle(x1+dx1,y1+dy1,x2+dx2,y2+dy2, fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
-                temp_bounding_box = (min(x1+dx1,x2+dx2), min(y1+dy1,y2+dy2), max(x1+dx1,x2+dx2), max(y1+dy1,y2+dy2))
-                self.new_label_text = self.create_text(label[0][0], label[0][1] - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
-                self.temp_label = (temp_bounding_box,CLASSES[SELECTED_CLASS],self.new_label_temporary_box,self.new_label_text)
-            '''
-            '''
-            self.new_label_box = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS])
-            self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
-            bounding_box = (min(x1,x2)/ self.winfo_width(), min(y1,y2)/self.winfo_height(), max(x1,x2)/self.winfo_width(), max(y1,y2)/self.winfo_height())
-            self.temp_label = (bounding_box,CLASSES[SELECTED_CLASS],self.new_label_box,self.new_label_text)
-            print("added", bounding_box, CLASSES[SELECTED_CLASS])
-            '''
+          
             
             
 
