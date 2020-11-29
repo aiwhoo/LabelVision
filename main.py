@@ -277,14 +277,15 @@ class ImageCanvas(tk.Canvas):
                 nx1 = (x1 - dx)
                 nx2 = (x2 - dx)
                 x1 = x
-            '''
+            
             elif x > x1:
-                dx = x1 - x
+                
+                dx = x - x1
                 x2 = x2 + dx
-                nx1 = (x1 + dx)
-                nx2 = (x2 + dx)
+                nx1 = (x1 - dx)
+                nx2 = (x2 - dx)
                 x1 = x
-            '''
+            
 
             if y < y1:
                 dy = y1 - y
@@ -293,17 +294,17 @@ class ImageCanvas(tk.Canvas):
                 ny2 = (y2 - dy)
                 y1 = y
             
-
-            '''
-            if y > y1:
-                dy = y1 - y
+            elif y > y1:
+                
+                dy = y - y1
                 y2 = y2 + dy  
-                ny1 = (y1 + dy)
-                ny2 = (y2 + dy)
+                ny1 = (y1 - dy)
+                ny2 = (y2 - dy)
+                
                 y1 = y
 
 
-            '''
+            
          
             
        
