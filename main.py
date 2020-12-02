@@ -45,7 +45,6 @@ class ImageCanvas(tk.Canvas):
         self.config(cursor = 'none')
         self.rollingover_label = False
         self.dragging = False
-        self.box_count = 0
         self.dragged_label = None
         self.temp_label = None
         
@@ -175,7 +174,7 @@ class ImageCanvas(tk.Canvas):
                 self.delete(self.new_label_temporary_text)
             x1, y1 = self.new_label_clicked_xy
             x2 = min(max(event.x, 0), self.winfo_width())  # Don't go out of bounds
-            y2 = min(max(event.y, 0), self.winfo_width())
+            y2 = min(max(event.y, 0), self.winfo_height())
             self.new_label_temporary_box  = self.create_rectangle(x1,y1, x2,y2, fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
             self.new_label_temporary_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
     def clicked(self, event):
@@ -225,7 +224,7 @@ class ImageCanvas(tk.Canvas):
                 x1,y1 = self.new_label_clicked_xy
                 x2,y2 = self.new_label_released_xy
                 x2 =  min(max(x2, 0), self.winfo_width()) #Don't go out of bounds
-                y2 =  min(max(y2, 0), self.winfo_width())
+                y2 =  min(max(y2, 0), self.winfo_height())
                 #Note: top left is (0,0), bottom right is (1,1)
                 self.new_label_box = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS])
                 self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
@@ -266,55 +265,33 @@ class ImageCanvas(tk.Canvas):
             x = event.x/self.winfo_width()
             y = event.y/self.winfo_height()
             x =  min(max(x, 0), self.winfo_width()) #Don't go out of bounds
-            y =  min(max(y, 0), self.winfo_width())
+            y =  min(max(y, 0), self.winfo_height())
             
-            x1 = self.dragged_label[0][0] 
-            x2 = self.dragged_label[0][2] 
-            y1 = self.dragged_label[0][1] 
-            y2 = self.dragged_label[0][3]
-            
-            dx = 0                          # difference in x 
-            dy = 0                          # difference in y
-            #nx1 = nx2 = ny1 = ny2 = 0       # new rectangle edges
-            if x < x1:                          
-                dx = x1 - x
-                x2 = x2 - dx
-                #nx1 = (x1 - dx)
-                #nx2 = (x2 - dx)
-                x1 = x
-            
-            elif x > x1:
-                dx = x - x1
-                x2 = x2 + dx
-                #nx1 = (x1 + dx)
-                #nx2 = (x2 + dx)
-                x1 = x
-            
-            if y < y1:
-                dy = y1 - y
-                y2 = y2 - dy  
-                #ny1 = (y1 - dy)
-                #ny2 = (y2 - dy)
-                y1 = y
-            
-            elif y > y1:
-                dy = y - y1
-                y2 = y2 + dy  
-                #ny1 = (y1 + dy)
-                #ny2 = (y2 + dy)
-                y1 = y
 
+            x1, y1, x2, y2 = self.dragged_label[0] 
+            
+         
+            
+            x2 = x2 - x1 + x
+            y2 = y2 - y1 + y
+            x1 = x
+            y1 = y
+
+
+            x1 =  min(max(x1, 0), self.winfo_width()) #Don't go out of bounds
+            y1 =  min(max(y1, 0), self.winfo_height())
+
+            x2 =  min(max(x2, 0), self.winfo_width()) #Don't go out of bounds
+            y2 =  min(max(y2, 0), self.winfo_height())
+            temp_bounding_box = (min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2))
+            if temp_bounding_box[0] > self.winfo_width() or temp_bounding_box[1] > self.winfo_height():
+            	return 
 
             label = self.dragged_label
-            #self.new_label_temporary_box  = self.create_rectangle(x1,y1,x2,y2, fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
             self.new_label_temporary_box  = label[2]
 
-            #self.new_label_temporary_box  = self.create_rectangle(nx1*self.winfo_width(),ny1*self.winfo_height(), nx2*self.winfo_width(),ny2*self.winfo_height(), fill="", outline=COLORS[SELECTED_CLASS], dash=(5, 2))
-            temp_bounding_box = (min(x1,x2), min(y1,y2), max(x1,x2), max(y1,y2))
-            #self.new_label_text = self.create_text(x1, y1 - 5, fill=COLORS[SELECTED_CLASS], text=CLASSES[SELECTED_CLASS])
             self.new_label_text = self.dragged_label[3]
 
-            #self.temp_label = (temp_bounding_box,CLASSES[SELECTED_CLASS],self.new_label_temporary_box,self.new_label_text)
             self.temp_label = (temp_bounding_box,self.dragged_label[1],self.new_label_temporary_box,self.new_label_text)
 
             #self.delete(self.new_label_temporary_box)
