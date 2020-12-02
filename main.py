@@ -43,6 +43,7 @@ class ImageCanvas(tk.Canvas):
         self.resized_photoimage = ImageTk.PhotoImage(self.resizeable_image)
         self.image_on_canvas = self.create_image(0,0, anchor=tk.NW, image=self.resized_photoimage, tag="all")
         self.config(cursor = 'none')
+        self.rollingover_label = False
 
         self.addtag_all("all")
         self.update()
@@ -91,25 +92,37 @@ class ImageCanvas(tk.Canvas):
         label_filename = os.path.splitext(self.image_filename)[0] + ".txt"
         if os.path.exists(label_filename):
             os.remove(label_filename)
-    def load_labels(self, image_filename, existing_labels):
+
+
+    def load_labels(self, image_filename):
         #check if label file exists
         label_filename = os.path.splitext(image_filename)[0] + ".txt"
-        self.clear_labels() #delete this line if you want to have labels roll over from previous frame
-        if os.path.exists(label_filename):
-            print("Loading existing labels for", image_filename)
-            #MOVE HERE self.clear_labels() if you want to keep the previous frames labels
-            #draw labels from file onto canvas
-            with open(label_filename, "r") as yolo_label_file:
-                yolo_labels = yolo_label_file.read().splitlines()
-                for yolo_label in yolo_labels:
-                    class_index, x, y, width, height = yolo_label.split(" ")
-                    class_index = int(class_index)
-                    x, y, width, height = float(x), float(y), float(width), float(height)
-                    class_name = CLASSES[class_index]
-                    bb = [x,y, x+width, y+height]
-                    bb_id = self.create_rectangle(bb[0] * self.winfo_width(),bb[1] * self.winfo_height() ,bb[2] * self.winfo_width(),bb[3] * self.winfo_height(), fill="", outline=COLORS[class_index])
-                    new_label_text_id = self.create_text(x * self.winfo_width(), (y * self.winfo_height()) - 5, fill=COLORS[class_index], text=class_name)
-                    self.labels.append([bb,class_name,bb_id, new_label_text_id])
+        #self.clear_labels() #delete this line if you want to have labels roll over from previous frame
+        print("Rollingover label:", self.rollingover_label)      
+       
+        if self.rollingover_label == False:
+            self.clear_labels()
+
+        if os.path.exists(label_filename) and self.rollingover_label == True:
+            print("labels exist, don't overwrite")
+            self.clear_labels()
+
+        if len(self.labels) > 0:
+            print ("labels exist, no need to overwrite")
+        else:
+            if os.path.exists(label_filename):
+                    print("Loading existing labels for", image_filename)
+                    with open(label_filename, "r") as yolo_label_file:
+                        yolo_labels = yolo_label_file.read().splitlines()
+                        for yolo_label in yolo_labels:
+                            class_index, x, y, width, height = yolo_label.split(" ")
+                            class_index = int(class_index)
+                            x, y, width, height = float(x), float(y), float(width), float(height)
+                            class_name = CLASSES[class_index]
+                            bb = [x,y, x+width, y+height]
+                            bb_id = self.create_rectangle(bb[0] * self.winfo_width(),bb[1] * self.winfo_height() ,bb[2] * self.winfo_width(),bb[3] * self.winfo_height(), fill="", outline=COLORS[class_index])
+                            new_label_text_id = self.create_text(x * self.winfo_width(), (y * self.winfo_height()) - 5, fill=COLORS[class_index], text=class_name)
+                            self.labels.append([bb,class_name,bb_id, new_label_text_id])
         print("labels:")
         for label in self.labels:
             print(label)
@@ -123,7 +136,7 @@ class ImageCanvas(tk.Canvas):
             else:
                 print("removing labels", self.image_filename)
                 self.delete_label_file()
-        self.load_labels(filename, self.labels)
+        self.load_labels(filename)
         self.image_filename = filename
         self.resizeable_image = Image.open(self.image_filename).resize((self.width, self.height), Image.ANTIALIAS)
         self.resized_photoimage = ImageTk.PhotoImage(self.resizeable_image)
@@ -223,6 +236,8 @@ class App(tk.Tk):
     def __init__(self):
         tk.Tk.__init__(self)
         self.filename_label = None
+        self.mode_label = None              # refers to rollover/edit mode
+        self.adding_box_label = None      # refers to add/delete box
         self.create_widget_frame()
 
         self.create_menu()
@@ -254,6 +269,7 @@ class App(tk.Tk):
         current_row = 0
 
         tk.Label(widget_frame, text='Current File: ').grid(label_config, row=current_row)
+
         self.filename_label = tk.Label(widget_frame, text='')
         self.filename_label.grid(label_config, row=current_row)
         current_row += 1
@@ -264,6 +280,18 @@ class App(tk.Tk):
         self.class_optionmenu = tk.OptionMenu(widget_frame, self.selected_optionmenu, *CLASSES)
         self.selected_optionmenu.trace("w", self.updated_class_combobox)
         self.class_optionmenu.grid(widget_config, row=current_row)
+        current_row += 1
+
+        tk.Label(widget_frame, text='Rolling labels: ').grid(label_config, row=current_row)
+        self.mode_label = tk.Label(widget_frame, text='')
+        self.mode_label.grid(label_config, row=current_row)
+        self.mode_label.config(text="Rolling labels: " + "False")
+        current_row += 1
+
+        tk.Label(widget_frame, text='Adding boxes: ').grid(label_config, row=current_row)
+        self.adding_box_label = tk.Label(widget_frame, text='')
+        self.adding_box_label.grid(label_config, row=current_row)
+        self.adding_box_label.config(text="Adding boxes: " + "True")
         current_row += 1
 
         widget_frame.pack(fill=tk.X, expand=tk.NO)
@@ -304,9 +332,16 @@ class App(tk.Tk):
             cross_hair_color = "red" if self.frame_canvas.editing else CROSS_HAIR_COLORS[SELECTED_CROSS_HAIR_COLOR_INDEX]
             self.frame_canvas.itemconfig(self.frame_canvas.horizontal_dash_line, fill=cross_hair_color)
             self.frame_canvas.itemconfig(self.frame_canvas.vertical_dash_line, fill=cross_hair_color)
+            self.adding_box_label.config(text="Adding boxes: " + str(not self.frame_canvas.editing))
         elif event.char == "z":
             print("Deleting last box...");
             self.frame_canvas.clear_last_label()
+        elif event.char == "r":
+            self.frame_canvas.rollingover_label = not self.frame_canvas.rollingover_label
+            self.mode_label.config(text="Rolling Labels: " + str(self.frame_canvas.rollingover_label))
+            print("r pressed rollover is now", self.frame_canvas.rollingover_label)
+
+
         elif event.char == "f":
             SELECTED_CROSS_HAIR_COLOR_INDEX = (SELECTED_CROSS_HAIR_COLOR_INDEX + 1) % len(CROSS_HAIR_COLORS)
             print("Changing crosshair to: " + CROSS_HAIR_COLORS[SELECTED_CROSS_HAIR_COLOR_INDEX]);
