@@ -108,3 +108,9 @@ C - clear all bounding boxes
 4 - "improper-mask" label
 
 5 - "cant-tell-mask" label
+
+Z - Deletes the most recently created bounding box one at a time
+
+F - Toggles between a white/black crosshair for better visibility in dark/light areas of an image respectively
+
+R - Toggles "rollover mode", which takes the bounding boxes from the current frame and applies them to all subsequent frames navigated to with A/D until turned off
