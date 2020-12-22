@@ -1,5 +1,5 @@
-person
-no-mask
-mask
-improper-mask
-cant-tell-mask
+yellow-fish-1
+pink-fish-1
+orange-fish-1
+black-fish-1
+grey-fish-1
