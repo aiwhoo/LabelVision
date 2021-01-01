@@ -89,7 +89,7 @@ After setting your label type, use the keyboard shortcuts to annotate your image
 
 ### Shortcuts and Hotkeys
 
-![Keyboard Shortcuts](shortcuts2.JPG)
+![Keyboard Shortcuts](shortcuts3.PNG)
 
 W - with the W key, you can switch between creating annotations by dragging your mouse (the pointer color will be black) and deleting annotations by simply clicking on it (the pointer color will be red in this mode).
 
@@ -108,3 +108,9 @@ C - clear all bounding boxes
 4 - "improper-mask" label
 
 5 - "cant-tell-mask" label
+
+Z - Deletes the most recently created bounding box one at a time
+
+F - Toggles between a white/black crosshair for better visibility in dark/light areas of an image respectively
+
+R - Toggles "rollover mode", which takes the bounding boxes from the current frame and applies them to all subsequent frames navigated to with A/D until turned off
